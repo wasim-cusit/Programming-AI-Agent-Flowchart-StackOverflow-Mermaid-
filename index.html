@@ -1,386 +1,184 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Programming AI Agent + Flowchart (StackOverflow + Mermaid)</title>
-
-<!-- Mermaid (flowchart renderer) -->
-<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
-
+<meta charset="UTF-8">
+<title>AI Programming Helper — Multi API</title>
 <style>
-  :root { --panel-bg:#f7f8fb; --accent:#2b7cff; }
-  body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; margin: 16px; color:#111; }
-  h1 { margin:0 0 12px; font-size:20px; }
-  .app { display:flex; gap:16px; align-items:flex-start; }
-  .left { width:260px; background:var(--panel-bg); padding:12px; border-radius:8px; box-shadow:0 6px 18px rgba(12,24,48,0.06); }
-  .right { flex:1; min-width:420px; }
-  .api-module { background:#fff; border:1px solid #e3e7ef; padding:10px; margin-bottom:10px; border-radius:6px; cursor:grab; }
-  .api-module:active { cursor:grabbing; }
-  .dropzone { min-height:120px; border:2px dashed #cfd8e6; border-radius:8px; display:flex; align-items:center; justify-content:center; padding:12px; text-align:center; color:#666; background: linear-gradient(180deg,#ffffff00, #ffffff00); }
-  .dropzone.active { border-color: var(--accent); box-shadow:0 6px 18px rgba(43,124,255,0.08); color:var(--accent); }
-  label { display:block; margin-top:10px; font-weight:600; font-size:13px; }
-  input[type="text"], textarea { width:100%; padding:8px; margin-top:6px; border-radius:6px; border:1px solid #e3e7ef; box-sizing:border-box; font-size:14px; }
-  textarea { min-height:120px; resize:vertical; }
-  button { margin-top:8px; padding:9px 12px; border-radius:6px; border:0; background:var(--accent); color:white; cursor:pointer; font-weight:600; }
-  .output { margin-top:12px; border-radius:8px; padding:12px; background:#fff; border:1px solid #eef2fb; box-shadow:0 6px 18px rgba(12,24,48,0.04); }
-  .meta { font-size:12px; color:#666; margin-bottom:8px; }
-  .answer-body { white-space:pre-wrap; font-size:14px; line-height:1.45; }
-  .small { font-size:12px; color:#666; }
-  .controls { display:flex; gap:8px; margin-top:8px; }
-  .chip { padding:6px 8px; border-radius:6px; background:#eef4ff; color:var(--accent); font-weight:600; font-size:13px; }
-  .footer { margin-top:10px; font-size:12px; color:#666; }
-  .hint { font-size:12px; color:#777; margin-top:8px; }
+    body {
+        font-family: Arial, sans-serif;
+        background: #f4f4f4;
+        margin: 0;
+        padding: 0;
+    }
+    .container {
+        max-width: 900px;
+        margin: auto;
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        margin-top: 20px;
+    }
+    h1 { text-align: center; }
+    .apis {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-bottom: 10px;
+    }
+    .api-option {
+        background: #ddd;
+        padding: 10px;
+        cursor: grab;
+        border-radius: 4px;
+        user-select: none;
+    }
+    .api-option.dragging {
+        opacity: 0.5;
+    }
+    input, button {
+        width: 100%;
+        padding: 10px;
+        margin: 10px 0;
+        font-size: 16px;
+    }
+    button {
+        background: #28a745;
+        color: white;
+        border: none;
+        cursor: pointer;
+    }
+    pre {
+        background: #222;
+        color: #0f0;
+        padding: 10px;
+        overflow-x: auto;
+    }
+    .mermaid {
+        background: #f0f0f0;
+        padding: 10px;
+        border-radius: 8px;
+    }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+<script>mermaid.initialize({ startOnLoad: false });</script>
 </head>
 <body>
 
-<h1>Programming AI Agent + Flowchart (StackOverflow → Mermaid)</h1>
+<div class="container">
+    <h1>AI Programming Helper — Multi API</h1>
 
-<div class="app">
-  <div class="left">
-    <div style="font-weight:700; margin-bottom:8px;">Drag & Drop Modules</div>
-
-    <div class="api-module" draggable="true" id="qa-module">
-      <div style="font-weight:700;">Q&A Module</div>
-      <div class="small">Fetch best StackOverflow answer for your programming question.</div>
+    <h3>Drag & Drop APIs to set the call order:</h3>
+    <div id="api-list" class="apis">
+        <div class="api-option" draggable="true" data-api="stackexchange">StackOverflow</div>
+        <div class="api-option" draggable="true" data-api="github">GitHub Code Search</div>
+        <div class="api-option" draggable="true" data-api="dictionary">Dictionary</div>
+        <div class="api-option" draggable="true" data-api="wikipedia">Wikipedia</div>
+        <div class="api-option" draggable="true" data-api="programmingQuotes">Programming Quotes</div>
     </div>
 
-    <div class="api-module" draggable="true" id="flow-module">
-      <div style="font-weight:700;">Flowchart Module (Mermaid)</div>
-      <div class="small">Generate flowchart from text (automatically used after Q&A).</div>
-    </div>
+    <input type="text" id="question" placeholder="Ask your programming question...">
+    <button id="ask-btn">Ask All APIs</button>
 
-    <div style="margin-top:12px;">
-      <div class="hint">Tip: Drop Q&A first (or both) and press <span class="chip">Ask</span>. If only Flowchart module is dropped, paste text to convert to flowchart.</div>
-    </div>
-  </div>
+    <h3>API Responses:</h3>
+    <pre id="response"></pre>
 
-  <div class="right">
-    <div style="display:flex; gap:12px; align-items:center;">
-      <div style="flex:1">
-        <label for="droparea">Pipeline Dropzone</label>
-        <div id="droparea" class="dropzone">Drop API modules here</div>
-      </div>
-      <div style="width:240px;">
-        <label for="question">Programming question / Input</label>
-        <textarea id="question" placeholder="Type a programming question — e.g. 'How to merge two arrays in JavaScript?'"></textarea>
-        <div class="controls">
-          <button id="askBtn">Ask</button>
-          <button id="clearBtn" style="background:#eee;color:#111">Clear</button>
-        </div>
-      </div>
-    </div>
-
-    <div id="results" class="output" style="display:none;">
-      <div class="meta" id="metaText"></div>
-      <div style="display:flex; gap:16px; align-items:flex-start;">
-        <div style="flex:1;">
-          <div style="font-weight:700; margin-bottom:6px;">Answer (from StackOverflow)</div>
-          <div id="answer" class="answer-body"></div>
-          <div id="answerLink" style="margin-top:8px;"></div>
-        </div>
-
-        <div style="width:420px;">
-          <div style="font-weight:700; margin-bottom:6px;">Flowchart</div>
-          <div id="flowchartContainer" style="background:#fafbff; padding:8px; border-radius:8px; min-height:120px;">
-            <!-- Mermaid chart will be inserted here -->
-            <div id="mermaidArea"></div>
-          </div>
-        </div>
-      </div>
-      <div class="footer">Built with StackExchange public API (no API key) + Mermaid.js (client-side flowchart rendering).</div>
-    </div>
-
-  </div>
+    <h3>Flowchart:</h3>
+    <div class="mermaid" id="flowchart"></div>
 </div>
 
 <script>
-/* mermaid init */
-mermaid.initialize({ startOnLoad: false, theme: 'neutral' });
-
-/* Drag & Drop behaviour */
-const modules = document.querySelectorAll('.api-module');
-modules.forEach(m => {
-  m.addEventListener('dragstart', e => {
-    e.dataTransfer.setData('text/plain', m.id);
-  });
+// ================= DRAG & DROP SORTING =================
+const apiList = document.getElementById("api-list");
+let dragged = null;
+apiList.addEventListener("dragstart", e => {
+    dragged = e.target;
+    e.target.classList.add("dragging");
 });
-
-const droparea = document.getElementById('droparea');
-let droppedModules = new Set();
-
-droparea.addEventListener('dragover', e => { e.preventDefault(); droparea.classList.add('active'); });
-droparea.addEventListener('dragleave', e => { droparea.classList.remove('active'); });
-
-droparea.addEventListener('drop', e => {
-  e.preventDefault();
-  droparea.classList.remove('active');
-  const id = e.dataTransfer.getData('text/plain');
-  if (!id) return;
-  droppedModules.add(id);
-  renderDropzoneState();
+apiList.addEventListener("dragend", e => {
+    e.target.classList.remove("dragging");
 });
-
-function renderDropzoneState() {
-  if (droppedModules.size === 0) {
-    droparea.innerText = 'Drop API modules here';
-  } else {
-    const chips = Array.from(droppedModules).map(id => {
-      const name = id === 'qa-module' ? 'Q&A' : (id === 'flow-module' ? 'Flowchart' : id);
-      return `<span class="chip" data-id="${id}" style="cursor:default">${name}</span>`;
-    }).join(' ');
-    droparea.innerHTML = `<div style="display:flex;gap:8px;align-items:center;justify-content:center;">${chips}</div><div style="font-size:12px;margin-top:8px;color:#666">Drag a chip again to remove. Click Clear to reset.</div>`;
-  }
+apiList.addEventListener("dragover", e => {
+    e.preventDefault();
+    const afterElement = getDragAfterElement(apiList, e.clientX);
+    if (afterElement == null) {
+        apiList.appendChild(dragged);
+    } else {
+        apiList.insertBefore(dragged, afterElement);
+    }
+});
+function getDragAfterElement(container, x) {
+    const draggableElements = [...container.querySelectorAll(".api-option:not(.dragging)")];
+    return draggableElements.reduce((closest, child) => {
+        const box = child.getBoundingClientRect();
+        const offset = x - box.left - box.width / 2;
+        if (offset < 0 && offset > closest.offset) {
+            return { offset: offset, element: child };
+        } else {
+            return closest;
+        }
+    }, { offset: Number.NEGATIVE_INFINITY }).element;
 }
 
-/* Allow clicking a chip to remove it */
-droparea.addEventListener('click', e => {
-  const chip = e.target.closest('.chip');
-  if (!chip) return;
-  const id = chip.dataset.id;
-  if (id) {
-    droppedModules.delete(id);
-    renderDropzoneState();
-  }
-});
-
-document.getElementById('clearBtn').addEventListener('click', () => {
-  droppedModules.clear();
-  document.getElementById('question').value = '';
-  document.getElementById('results').style.display = 'none';
-  renderDropzoneState();
-});
-
-/* Main flow: Ask button */
-document.getElementById('askBtn').addEventListener('click', async () => {
-  const q = document.getElementById('question').value.trim();
-  if (droppedModules.size === 0) {
-    alert('Please drag at least one module (Q&A or Flowchart) into the dropzone.');
-    return;
-  }
-  if (!q && droppedModules.has('qa-module')) {
-    alert('Please enter a programming question for the Q&A module.');
-    return;
-  }
-  document.getElementById('results').style.display = 'block';
-  document.getElementById('metaText').textContent = 'Working...';
-  document.getElementById('answer').textContent = '';
-  document.getElementById('mermaidArea').innerHTML = '';
-
-  let answerText = '';
-  let sourceLink = '';
-
-  // If QA module is present -> fetch best StackOverflow answer
-  if (droppedModules.has('qa-module')) {
+// ================= API CALLS =================
+async function callAPI(api, query) {
     try {
-      const soAnswer = await fetchStackOverflowAnswer(q);
-      if (soAnswer) {
-        answerText = soAnswer.text;
-        sourceLink = soAnswer.link;
-        document.getElementById('metaText').textContent = 'Answer found on StackOverflow (best match).';
-      } else {
-        answerText = 'No suitable StackOverflow answer found. Try rephrasing the question or drop only Flowchart module to generate a flowchart from your text.';
-        document.getElementById('metaText').textContent = 'No StackOverflow answer found.';
-      }
+        if (api === "stackexchange") {
+            let res = await fetch(`https://api.stackexchange.com/2.3/search?order=desc&sort=relevance&intitle=${encodeURIComponent(query)}&site=stackoverflow`);
+            let data = await res.json();
+            return data.items?.[0] ? `${data.items[0].title} → ${data.items[0].link}` : "No StackOverflow result";
+        }
+        if (api === "github") {
+            let res = await fetch(`https://api.github.com/search/code?q=${encodeURIComponent(query)}+in:file+language:javascript`);
+            let data = await res.json();
+            return data.items?.[0]?.html_url || "No GitHub result";
+        }
+        if (api === "dictionary") {
+            let res = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(query)}`);
+            let data = await res.json();
+            return data[0]?.meanings?.[0]?.definitions?.[0]?.definition || "No dictionary definition";
+        }
+        if (api === "wikipedia") {
+            let res = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(query)}`);
+            let data = await res.json();
+            return data.extract || "No Wikipedia info";
+        }
+        if (api === "programmingQuotes") {
+            let res = await fetch("https://programming-quotes-api.herokuapp.com/quotes/random");
+            let data = await res.json();
+            return `"${data.en}" — ${data.author}`;
+        }
     } catch (err) {
-      console.error(err);
-      answerText = 'Error fetching StackOverflow answer. Check network or CORS restrictions.';
-      document.getElementById('metaText').textContent = 'Fetch error.';
+        return `${api} API Error`;
     }
-  } else {
-    // No QA module -> use user's input as text for flowchart
-    answerText = q || 'No input provided.';
-    document.getElementById('metaText').textContent = 'Using user input as source text (Flowchart-only mode).';
-  }
+    return "Unknown API";
+}
 
-  // Show answer
-  document.getElementById('answer').textContent = answerText;
-  if (sourceLink) {
-    document.getElementById('answerLink').innerHTML = `<a href="${sourceLink}" target="_blank" rel="noopener">Open source on StackOverflow</a>`;
-  } else {
-    document.getElementById('answerLink').innerHTML = '';
-  }
+// ================= ASK BUTTON =================
+document.getElementById("ask-btn").addEventListener("click", async () => {
+    const query = document.getElementById("question").value.trim();
+    if (!query) return alert("Please enter a question");
 
-  // If Flowchart module is present (or even if not, we will try to auto-generate)
-  if (droppedModules.has('flow-module') || droppedModules.has('qa-module')) {
-    const flow = buildFlowFromText(answerText);
-    renderMermaid(flow);
-  } else {
-    // No flow module -> do nothing
-    document.getElementById('mermaidArea').innerHTML = '<div class="small">Flowchart module not added. Drag Flowchart module to enable diagram generation.</div>';
-  }
+    const apis = [...document.querySelectorAll(".api-option")].map(el => el.dataset.api);
+    let responses = [];
+
+    for (let api of apis) {
+        let answer = await callAPI(api, query);
+        responses.push({ api, answer });
+    }
+
+    document.getElementById("response").textContent =
+        responses.map(r => `[${r.api.toUpperCase()}] ${r.answer}`).join("\n\n");
+
+    // ================= FLOWCHART =================
+    let chart = "graph TD;\n";
+    chart += `Q[Question: ${query}];\n`;
+    responses.forEach((r, i) => {
+        let safeAnswer = r.answer.replace(/[\[\]]/g, '').replace(/\"/g, "'");
+        chart += `Q --> A${i}[${r.api.toUpperCase()}: ${safeAnswer}];\n`;
+    });
+    document.getElementById("flowchart").textContent = chart;
+    mermaid.init(undefined, document.querySelectorAll("#flowchart"));
 });
-
-/* Helper: fetch best StackOverflow answer (search -> question -> answers) */
-async function fetchStackOverflowAnswer(query) {
-  // 1) Search for questions matching the query (relevance, accepted answers first)
-  const qEncoded = encodeURIComponent(query);
-  const searchUrl = `https://api.stackexchange.com/2.3/search/advanced?order=desc&sort=relevance&q=${qEncoded}&site=stackoverflow&accepted=True&pagesize=5`;
-  const searchResp = await fetch(searchUrl);
-  if (!searchResp.ok) throw new Error('Search failed: ' + searchResp.status);
-  const searchJson = await searchResp.json();
-  if (!searchJson.items || searchJson.items.length === 0) return null;
-
-  // Pick top question
-  const top = searchJson.items[0];
-  const questionId = top.question_id;
-  const questionLink = top.link;
-
-  // 2) Fetch answers for that question, sorted by votes (include body)
-  const answersUrl = `https://api.stackexchange.com/2.3/questions/${questionId}/answers?order=desc&sort=votes&site=stackoverflow&filter=withbody`;
-  const answersResp = await fetch(answersUrl);
-  if (!answersResp.ok) throw new Error('Answers fetch failed: ' + answersResp.status);
-  const answersJson = await answersResp.json();
-  if (!answersJson.items || answersJson.items.length === 0) return { text: null, link: questionLink };
-
-  // Choose highest-voted or accepted
-  let chosen = answersJson.items.find(a => a.is_accepted) || answersJson.items[0];
-
-  // chosen.body is HTML - strip tags but keep code blocks (we will keep code by replacing <pre> blocks)
-  const bodyHtml = chosen.body || '';
-  const cleaned = htmlToPlainText(bodyHtml);
-
-  return { text: cleaned, link: questionLink };
-}
-
-/* Convert HTML to readable plaintext while keeping code blocks separated */
-function htmlToPlainText(html) {
-  // Extract <pre> and <code> contents separately
-  let tmp = html;
-  // Replace <pre><code>...</code></pre> with markers
-  tmp = tmp.replace(/<pre[^>]*>([\s\S]*?)<\/pre>/gi, function(_, code) {
-    return `\n\n[CODE_BLOCK_START]\n${stripHtml(code)}\n[CODE_BLOCK_END]\n\n`;
-  });
-  // Remove remaining tags
-  tmp = tmp.replace(/<\/?(?:.|\n)*?>/g, '');
-  // decode HTML entities
-  const txt = decodeHtmlEntities(tmp).trim();
-  return txt;
-}
-
-/* helper: strip html tags from a string */
-function stripHtml(str) {
-  return str.replace(/<\/?(?:.|\n)*?>/g, '');
-}
-function decodeHtmlEntities(str) {
-  // Basic decoding for common entities
-  return str.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#39;/g, "'");
-}
-
-/* Build mermaid flowchart text from a source text using heuristics */
-function buildFlowFromText(sourceText) {
-  // Heuristics:
-  // - If the text contains numbered lists (lines starting with 1. 2. etc) or [1], use them as steps.
-  // - If it contains [CODE_BLOCK_START], treat code block as a single step.
-  // - Else if it contains bullet points (lines starting with - or *), use them.
-  // - Else split into sentences and take up to 6 key sentences.
-  const lines = sourceText.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
-
-  // collect steps
-  let steps = [];
-
-  // 1. Look for explicit numbered list lines
-  for (const ln of lines) {
-    if (/^\d+[\.\)]\s+/.test(ln)) {
-      steps = lines.filter(l => /^\d+[\.\)]\s+/.test(l)).map(l => l.replace(/^\d+[\.\)]\s+/, ''));
-      break;
-    }
-  }
-
-  // 2. If none, look for CODE_BLOCK markers - treat each code block as step
-  if (steps.length === 0) {
-    const codeBlocks = [];
-    let inCode = false, cur = [];
-    for (const ln of lines) {
-      if (ln === '[CODE_BLOCK_START]') { inCode = true; cur = []; continue; }
-      if (ln === '[CODE_BLOCK_END]') { inCode = false; codeBlocks.push(cur.join('\n')); cur = []; continue; }
-      if (inCode) cur.push(ln);
-    }
-    if (codeBlocks.length > 0) {
-      // create steps: text steps around code plus code blocks
-      // simple: Step 1: Read problem, Step 2: Code block, Step 3: Run & verify
-      steps.push('Read the problem / input');
-      codeBlocks.forEach((cb, i) => steps.push('Code example ' + (i+1)));
-      steps.push('Run & verify output');
-    }
-  }
-
-  // 3. bullet lists
-  if (steps.length === 0) {
-    const bullets = lines.filter(l => /^[-\*\u2022]\s+/.test(l)).map(l => l.replace(/^[-\*\u2022]\s+/, ''));
-    if (bullets.length > 0) steps = bullets;
-  }
-
-  // 4. If still empty, use sentence splitting on first paragraphs
-  if (steps.length === 0) {
-    // join into single paragraph and split into sentences (naive)
-    const joined = lines.join(' ');
-    const sentences = joined.match(/[^\.!\?]+[\.!\?]*/g) || [];
-    // take up to 6 sentences
-    steps = sentences.map(s => s.trim()).filter(Boolean).slice(0, 6);
-    if (steps.length === 0) steps = [joined.slice(0, 300) || 'Summary'];
-  }
-
-  // Generate mermaid flowchart text
-  // Use vertical top-down (TD). Node ids A, B, C...
-  const nodes = steps.map((s, i) => {
-    // shorten node text for display in boxes
-    const label = s.length > 120 ? s.slice(0, 117) + '...' : s;
-    const id = 'N' + (i+1);
-    // sanitize brackets
-    const safeLabel = label.replace(/\[/g,'\\[').replace(/\]/g,'\\]');
-    return { id, label: safeLabel };
-  });
-
-  // Create relationships
-  let mermaid = 'flowchart TD\n';
-  mermaid += `  START([Start])\n`;
-  nodes.forEach(n => {
-    mermaid += `  ${n.id}["${escapeForMermaid(n.label)}"]\n`;
-  });
-  mermaid += `  END([End])\n\n`;
-  // connect
-  if (nodes.length === 1) {
-    mermaid += `  START --> ${nodes[0].id} --> END\n`;
-  } else {
-    mermaid += `  START --> ${nodes[0].id}\n`;
-    for (let i=0;i<nodes.length-1;i++) {
-      mermaid += `  ${nodes[i].id} --> ${nodes[i+1].id}\n`;
-    }
-    mermaid += `  ${nodes[nodes.length-1].id} --> END\n`;
-  }
-  return mermaid;
-}
-
-/* Escape double quotes and newlines for mermaid labels */
-function escapeForMermaid(s) {
-  return s.replace(/"/g,'\\"').replace(/\n/g, ' ');
-}
-
-/* Render mermaid text into #mermaidArea */
-function renderMermaid(mermaidText) {
-  const area = document.getElementById('mermaidArea');
-  // create a unique id to avoid collisions
-  const uid = 'm_' + Date.now();
-  area.innerHTML = `<div class="mermaid" id="${uid}">\n${mermaidText}\n</div>`;
-  // mermaid init for the specific element
-  try {
-    mermaid.init(undefined, document.getElementById(uid));
-  } catch (err) {
-    console.error('Mermaid render error', err);
-    area.innerHTML = '<div class="small">Error rendering flowchart.</div>';
-  }
-}
-
-/* Utility: quick test helper to prefill demo */
-(function prefillDemoIfEmpty() {
-  const qta = document.getElementById('question');
-  if (!qta.value) {
-    qta.value = `How to merge two arrays in JavaScript?`;
-  }
-})();
-
 </script>
 
 </body>
